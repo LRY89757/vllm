@@ -149,7 +149,7 @@ if __name__ == '__main__':
     std_output_len = 128
 
     # [2, 4, 8, 16, 32, 64]
-    all_x_axis = {"batch size":[2, 4, 8, 16, 32, 64], "input lens":[32, 64, 128, 256, 512, 1024, 2048, ], "output lens": [128, 256, 512, 1024, 2048,]}
+    all_x_axis = {"batch size":[2, 4, 8, 16, 32, 64, 128, 256], "input lens":[32, 64, 128, 256, 512, 1024, 2048, 4096], "output lens": [128, 256, 512, 1024, 2048, 4096]}
 
     batch_sizes = [(item, std_inputlen, std_output_len) for item in all_x_axis["batch size"]]
     input_lens = [(std_bsz, item, std_output_len) for item in all_x_axis["input lens"]]
@@ -187,6 +187,6 @@ if __name__ == '__main__':
 
             latency_dict[k].append((bsz, in_len, out_len, latencies[-1]))
 
-            path = "/home/lry/projects/vllm/benchmarks/latency.json"
+            path = "/home/ubuntu/projects/vllm/benchmarks/latency.json"
             with open(path, 'w') as f:
                 f.write(json.dumps(latency_dict, indent=4) + '\n')
