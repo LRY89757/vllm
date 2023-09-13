@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-def plot_figure(x_axis, y_axis, x_name, y_name):
+def plot_figure(x_axis, y_axis, x_name, y_name, unit="(s)"):
     # Create a figure
     plt.figure(figsize=(8, 6))
     
@@ -10,7 +10,7 @@ def plot_figure(x_axis, y_axis, x_name, y_name):
     # Add a title and axis labels
     plt.title(f'{x_name} vs. {y_name}')
     plt.xlabel(f'{x_name}')
-    plt.ylabel(f'{y_name} (s)')
+    plt.ylabel(f'{y_name} {unit}')
     
     # Set the axis limits to start from zero
     plt.xlim(0, max(x_axis) * 1.1)  # Allow for 10% margin
