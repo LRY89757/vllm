@@ -238,9 +238,9 @@ if __name__ == "__main__":
     parser.add_argument('--trust-remote-code', action='store_true',
                         help='trust remote code from huggingface')
     args = parser.parse_args()
-    main(args)
+    # main(args)
 
-    all_x_axis = {"request rate":[1, 5, 10, 20, 50, 100, 200, "inf"],}
+    all_x_axis = {"request rate":[1, 5, 10, 20, 50, 100, 200, 0],}
 
     throughput_dict = {
         "request rate":[],
@@ -261,9 +261,12 @@ if __name__ == "__main__":
         for idx, item in enumerate(v):
 
             request_rate = item
+            if request_rate == 0:
+                request_rate = float("inf")
             args.request_rate = request_rate
 
             total_time, throughput, avg_latency, avg_per_token_latency, avg_per_output_token_latency = main(args)
+            # total_time, throughput, avg_latency, avg_per_token_latency, avg_per_output_token_latency = 5, 6, 7, 8, 9 
 
             item_dict = {"total_time":total_time, "throughput":throughput, "avg_latency":avg_latency, 
                         "avg_per_token_latency":avg_per_token_latency, 
@@ -271,9 +274,9 @@ if __name__ == "__main__":
 
             throughts.append(throughput)
 
-            if args.tensor_parallel_size != 1:
-                import ray
-                ray.shutdown()
+            # if args.tensor_parallel_size != 1:
+            #     import ray
+            #     ray.shutdown()
 
             plot_figure(all_x_axis[k][0:idx+1], throughts, k, "throughput", "requests/s")
 
