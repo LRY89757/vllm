@@ -52,7 +52,8 @@ def sample_requests(
         if prompt_len > 1024 or prompt_len + output_len > 2048:
             # Prune too long sequences.
             continue
-        filtered_dataset.append((prompt, prompt_len, output_len))
+        # filtered_dataset.append((prompt, prompt_len, output_len))
+        filtered_dataset.append((prompt, prompt_len, 80))
 
     # Sample the requests.
     sampled_requests = random.sample(filtered_dataset, num_requests)
@@ -188,6 +189,18 @@ def main(args: argparse.Namespace):
 
 
 if __name__ == "__main__":
+    '''
+    python benchmark_throughput.py --backend vllm --dataset ~/data/ShareGPT_V3_unfiltered_cleaned_split.json --model "meta-llama/Llama-2-7b-hf" -tp 4 \
+                                                    --tokenizer 'hf-internal-testing/llama-tokenizer'  --num-prompts 2000
+    INFO 08-30 12:15:08 llm_engine.py:196] # GPU blocks: 3050, # CPU blocks: 2048                           │
+    Processed prompts: 100%|████████████████████████████████████████████| 1000/1000 [06:44<00:00,  2.47it/s]│
+    Throughput: 2.47 requests/s, 1183.42 tokens/s
+
+    python benchmark_throughput.py --backend vllm --dataset ~/data/ShareGPT_V3_unfiltered_cleaned_split.json --model "meta-llama/Llama-2-7b-hf" --tokenizer 'hf-internal-testing/llama-tokenizer'  --num-prompts 2000
+
+    python benchmark_throughput.py --backend hf --dataset ~/data/ShareGPT_V3_unfiltered_cleaned_split.json --model "meta-llama/Llama-2-7b-hf" --hf-max-batch-size 1 --tokenizer 'hf-internal-testing/llama-tokenizer'
+    '''
+
     parser = argparse.ArgumentParser(description="Benchmark the throughput.")
     parser.add_argument("--backend", type=str, choices=["vllm", "hf"],
                         default="vllm")
@@ -208,6 +221,7 @@ if __name__ == "__main__":
                         action='store_true',
                         help='trust remote code from huggingface')
     args = parser.parse_args()
+
 
     if args.backend == "vllm":
         if args.hf_max_batch_size is not None:
