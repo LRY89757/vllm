@@ -240,7 +240,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # main(args)
 
-    all_x_axis = {"request rate":[1, 5, 10, 20, 50, 100, 200, 0],}
+    # all_x_axis = {"request rate":[1, 5, 10, 20, 50, 100, 200, 0],}
+    # all_x_axis = {"request rate":[1],}
+    # all_x_axis = {"request rate":[0, 200],}
+    # all_x_axis = {"request rate":[2, 3, 4],}
+    all_x_axis = {"request rate":[1.5],}
 
     throughput_dict = {
         "request rate":[],
