@@ -221,6 +221,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--dataset", type=str, required=True,
                         help="Path to the dataset.")
+    parser.add_argument('--out_file', type=str, default="/root/projects/vllm/benchmarks/llama2-7b-throughput.json")
     parser.add_argument("--tokenizer", type=str, required=True,
                         help="Name or path of the tokenizer.")
     parser.add_argument("--best-of", type=int, default=1,
@@ -286,6 +287,7 @@ if __name__ == "__main__":
 
             throughput_dict[k].append((request_rate, item_dict))
 
-            path = "/home/ubuntu/projects/vllm/benchmarks/throughput.json"
+            # path = "/home/ubuntu/projects/vllm/benchmarks/throughput.json"
+            path = args.out_file
             with open(path, 'w') as f:
                 f.write(json.dumps(throughput_dict, indent=4) + '\n')

@@ -132,6 +132,7 @@ if __name__ == '__main__':
     parser.add_argument('--input-len', type=int, default=32)
     parser.add_argument('--output-len', type=int, default=128)
     parser.add_argument('--batch-size', type=int, default=8)
+    parser.add_argument('--out_file', type=str, default="/root/projects/vllm/benchmarks/llama2-7b-latency.json")
     parser.add_argument('--n', type=int, default=1,
                         help='Number of generated sequences per prompt.')
     parser.add_argument('--use-beam-search', action='store_true')
@@ -187,6 +188,7 @@ if __name__ == '__main__':
 
             latency_dict[k].append((bsz, in_len, out_len, latencies[-1]))
 
-            path = "/home/ubuntu/projects/vllm/benchmarks/latency.json"
+            # path = "/root/projects/vllm/benchmarks/latency.json"
+            path = args.out_file
             with open(path, 'w') as f:
                 f.write(json.dumps(latency_dict, indent=4) + '\n')
