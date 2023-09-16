@@ -150,7 +150,12 @@ if __name__ == '__main__':
     std_output_len = 128
 
     # [2, 4, 8, 16, 32, 64]
-    all_x_axis = {"batch size":[2, 4, 8, 16, 32, 64, 128, 256], "input lens":[32, 64, 128, 256, 512, 1024, 2048, 4096], "output lens": [128, 256, 512, 1024, 2048, 4096]}
+    all_x_axis = {
+                # "batch size":[2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048], 
+                "batch size":[128, 512, 1024, 2048], 
+                    "input lens":[32, 64, 128, 256, 512, 1024, 2048, 4096], 
+                    "output lens": [128, 256, 512, 1024, 2048, 4096]
+                    }
 
     batch_sizes = [(item, std_inputlen, std_output_len) for item in all_x_axis["batch size"]]
     input_lens = [(std_bsz, item, std_output_len) for item in all_x_axis["input lens"]]
