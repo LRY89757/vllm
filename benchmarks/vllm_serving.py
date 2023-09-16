@@ -217,7 +217,8 @@ if __name__ == "__main__":
         description="Benchmark the online serving throughput.")
     parser.add_argument("--backend", type=str, default="vllm",
                         choices=["vllm", "tgi"])
-    parser.add_argument("--host", type=str, default="localhost")
+    # parser.add_argument("--host", type=str, default="localhost")
+    parser.add_argument("--host", type=str, default="127.0.0.2")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--dataset", type=str, required=True,
                         help="Path to the dataset.")
@@ -245,7 +246,8 @@ if __name__ == "__main__":
     # all_x_axis = {"request rate":[1],}
     # all_x_axis = {"request rate":[0, 200],}
     # all_x_axis = {"request rate":[2, 3, 4],}
-    all_x_axis = {"request rate":[1.5],}
+    # all_x_axis = {"request rate":[1.5],}
+    all_x_axis = {"request rate":[0, 1, 1.5, 2, 3, 4, 5, 10, 20, 50, 100, 200],}
 
     throughput_dict = {
         "request rate":[],
