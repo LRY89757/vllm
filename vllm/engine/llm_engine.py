@@ -547,6 +547,7 @@ class LLMEngine:
         if early_return is not None:
             return early_return
 
+        tic = time.perf_counter()
         # Execute the model.
         output = self._run_workers(
             "execute_model",
@@ -555,6 +556,9 @@ class LLMEngine:
             blocks_to_swap_out=scheduler_outputs.blocks_to_swap_out,
             blocks_to_copy=scheduler_outputs.blocks_to_copy,
         )
+        toc = time.perf_counter()
+
+        print(f"the single inference time: {(toc - tic)*1000:0.4f} ms")
 
         return self._process_model_outputs(output, scheduler_outputs)
 
