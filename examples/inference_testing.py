@@ -4,7 +4,9 @@ from vllm import LLM, SamplingParams
 def profile(llm:LLM, prompts, sampling_params, info_dict:None, out_json="trace.json"):
     import torch
     from torch.profiler import profile, record_function, ProfilerActivity
-    with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], record_shapes=True, profile_memory=True, use_cuda=True, with_flops=True, with_stack=True) as prof:
+    with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], 
+                on_trace_ready=torch.profiler.tensorboard_trace_handler(f'./log/{out_json[:-5]}'),
+                 record_shapes=True, profile_memory=True, use_cuda=True, with_flops=True, with_stack=True) as prof:
         with record_function("generate"):
             outputs = llm.generate(prompts, sampling_params, info_dict=info_dict)
 
@@ -25,7 +27,14 @@ def profile(llm:LLM, prompts, sampling_params, info_dict:None, out_json="trace.j
 
     return outputs
 
-
+def get_model_name(input_string:str):
+    import re
+    
+    match = re.search(r'/(.*)', input_string)
+    if match:
+        matched_text = match.group(1)
+        return matched_text
+    return "trace.json"
 
 '''
 
@@ -46,6 +55,9 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default='facebook/opt-125m')
     parser.add_argument('--tokenizer', type=str, default=None)
     parser.add_argument('--profile', type=bool, default=False)
+    parser.add_argument('--input-len', type=int, default=32)
+    parser.add_argument('--output-len', type=int, default=128)
+    parser.add_argument('--batch-size', type=int, default=8)
     args = parser.parse_args()
 
     # Sample prompts.
@@ -57,12 +69,18 @@ if __name__ == "__main__":
     # ]
     prompts = ["0"*512]
     # Create a sampling params object.
-    sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+    sampling_params = SamplingParams(temperature=0.8, top_p=0.95, ignore_eos=True, max_tokens=args.output_len)
+
+    std_bsz = 8
+    std_inputlen = 8
+    std_output_len = 32
 
     # Create an LLM.
     # llm = LLM(model="facebook/opt-125m")
     # llm = LLM(model="meta-llama/Llama-2-7b-hf", tokenizer='hf-internal-testing/llama-tokenizer')
-    llm = LLM(model=args.model, tokenizer=args.tokenizer)
+    llm = LLM(model=args.model, tokenizer=args.tokenizer, max_num_seqs=args.batch_size,
+        max_num_batched_tokens=args.batch_size * args.input_len
+     )
 
     info_dict = {"model_input_shape":[], "model_output_shape":[], "sampler_output_shape":[], 
                  "timer_total_model":[], "timer_total_sampler":[]}
@@ -70,7 +88,7 @@ if __name__ == "__main__":
     # Generate texts from the prompts. The output is a list of RequestOutput objects
     # that contain the prompt, generated text, and other information.
     if args.profile:
-        outputs = profile(llm, prompts, sampling_params, info_dict=None, out_json=f"{args.model}.json")
+        outputs = profile(llm, prompts, sampling_params, info_dict=None, out_json=f"{get_model_name(args.model)}.json")
     else:
         outputs = llm.generate(prompts, sampling_params, info_dict=info_dict)
 
@@ -88,4 +106,3 @@ if __name__ == "__main__":
         prompt = output.prompt
         generated_text = output.outputs[0].text
         print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
-

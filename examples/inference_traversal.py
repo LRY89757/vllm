@@ -12,6 +12,17 @@ from vllm.transformers_utils.tokenizer import get_tokenizer
 
 import ray
 
+def get_model_name(input_string:str):
+    import re
+    
+    match = re.search(r'/(.*)', input_string)
+    if match:
+        matched_text = match.group(1)
+        return matched_text
+    return "trace"
+
+# python examples/inference_traversal.py --model "meta-llama/Llama-2-13b-hf" --out_file "/root/projects/vllm/benchmarks/llama2-13b-latency.json" --tokenizer 'hf-internal-testing/llama-tokenizer' --num-iters 1
+# python examples/inference_traversal.py --model "meta-llama/Llama-2-7b-hf" --out_file "/root/projects/vllm/benchmarks/llama2-7b-latency.json" --tokenizer 'hf-internal-testing/llama-tokenizer' --num-iters 1
 def main(args: argparse.Namespace):
     print(args)
 
@@ -50,13 +61,32 @@ def main(args: argparse.Namespace):
     def run_to_completion(profile: bool = False):
         if profile:
             torch.cuda.cudart().cudaProfilerStart()
-        start_time = time.time()
 
-        llm.generate(prompt_token_ids=dummy_prompt_token_ids,
-                     sampling_params=sampling_params,
-                     use_tqdm=False)
-        
-        end_time = time.time()
+        import torch
+        from torch.profiler import profile, record_function, ProfilerActivity
+        with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], 
+                    on_trace_ready=torch.profiler.tensorboard_trace_handler(f'./log/{get_model_name(args.model) + "_batchsize_" + str(args.batch_size) + "_inputlen_" + str(args.input_len) + "_output_len_" + str(args.output_len)}'),
+                     record_shapes=True, profile_memory=True, use_cuda=True, with_flops=True, with_stack=True) as prof:
+            with record_function("generate"):
+                # outputs = llm.generate(prompts, sampling_params, info_dict=info_dict)
+                start_time = time.time()
+                llm.generate(prompt_token_ids=dummy_prompt_token_ids,
+                         sampling_params=sampling_params,
+                         use_tqdm=False)
+                end_time = time.time()
+            
+        print("self_cpu_memory_usage")
+        print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=10))
+
+        print("cput_time_total")
+        print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
+
+        print("cuda_time_total")
+        print(prof.key_averages().table(sort_by="cuda_time_total", row_limit=10))
+
+        # Print aggregated stats
+        print(prof.key_averages(group_by_stack_n=5).table(sort_by="self_cuda_time_total", row_limit=10))
+
         latency = end_time - start_time
         if profile:
             torch.cuda.cudart().cudaProfilerStop()
@@ -149,15 +179,17 @@ if __name__ == '__main__':
     std_inputlen = 8
     # std_inputlen = 32
     # std_output_len = 128
-    std_output_len = 256
+    std_output_len = 32
 
     # [2, 4, 8, 16, 32, 64]
     all_x_axis = {
                 # "batch size":[1, 2, 4, 8, 16, 32, 64, 128, 256, 384, 512, 768], 
-                "batch size":[1, 2, 4, 8, 16, 32, 64, 128, 256, 384, 512, 768], 
+                "batch size":[1, 2, 4, 8], 
                 # "batch size":[128, 512, 1024, 2048], 
-                    "input lens":[32, 64, 128, 256, 512, 1024, 2048, 4096], 
-                    "output lens": [128, 256, 512, 1024, 2048, 4096]
+                    "input lens":[8, 16], 
+                    # "input lens":[32, 64, 128, 256, 512, 1024, 2048, 4096], 
+                    # "output lens": [128, 256, 512, 1024, 2048, 4096]
+                    "output lens": [32]
                     }
 
     batch_sizes = [(item, std_inputlen, std_output_len) for item in all_x_axis["batch size"]]
@@ -176,27 +208,31 @@ if __name__ == '__main__':
     # from utils import plot_figure
     import json
 
-    for k, v in metrics.items():
+    # for k, v in metrics.items():
 
-        latencies = []
+    #     latencies = []
 
-        for idx, item in enumerate(v):
+    #     for idx, item in enumerate(v):
 
-            bsz, in_len, out_len = item
-            args.batch_size = bsz
-            args.input_len = in_len
-            args.output_len = out_len
+    for bsz in all_x_axis["batch size"]:
+        for in_len in all_x_axis["input lens"]:
+            for out_len in all_x_axis["output lens"]:
+                # bsz, in_len, out_len = item
+                args.batch_size = bsz
+                args.input_len = in_len
+                args.output_len = out_len
+                main(args)
 
-            latencies.append(main(args))
+            # latencies.append(main(args))
 
-            if args.tensor_parallel_size != 1:
-                ray.shutdown()
+            # if args.tensor_parallel_size != 1:
+            #     ray.shutdown()
 
-            # plot_figure(all_x_axis[k][0:idx+1], latencies, k, "latency")
+            # # plot_figure(all_x_axis[k][0:idx+1], latencies, k, "latency")
 
-            latency_dict[k].append((bsz, in_len, out_len, latencies[-1]))
+            # latency_dict[k].append((bsz, in_len, out_len, latencies[-1]))
 
-            # path = "/root/projects/vllm/benchmarks/latency.json"
-            path = args.out_file
-            with open(path, 'w') as f:
-                f.write(json.dumps(latency_dict, indent=4) + '\n')
+            # # path = "/root/projects/vllm/benchmarks/latency.json"
+            # path = args.out_file
+            # with open(path, 'w') as f:
+            #     f.write(json.dumps(latency_dict, indent=4) + '\n')
