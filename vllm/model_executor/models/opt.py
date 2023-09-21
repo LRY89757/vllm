@@ -282,11 +282,19 @@ class OPTForCausalLM(nn.Module):
         kv_caches: List[KVCache],
         input_metadata: InputMetadata,
         cache_events: Optional[List[torch.cuda.Event]],
+        info_dict:Optional[dict] = None,
     ) -> SamplerOutput:
+
         hidden_states = self.model(input_ids, positions, kv_caches,
                                    input_metadata, cache_events)
         next_tokens = self.sampler(self.lm_head_weight, hidden_states,
                                    input_metadata)
+
+        if info_dict is not None:
+            info_dict["model_input_shape"].append(input_ids.shape)
+            info_dict["model_output_shape"].append(hidden_states.shape)
+            info_dict["sampler_output_shape"].append((len(next_tokens), len(next_tokens[0])))
+
         return next_tokens
 
     _column_parallel_weights = [

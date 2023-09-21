@@ -226,7 +226,8 @@ class LLMEngine:
         engine = cls(*engine_configs,
                      distributed_init_method,
                      placement_group,
-                     log_stats=not engine_args.disable_log_stats)
+                    #  log_stats=not engine_args.disable_log_stats)
+                     log_stats=True)
         return engine
 
     def add_request(
@@ -534,7 +535,8 @@ class LLMEngine:
                                    scheduler_outputs.num_batched_tokens)
         return request_outputs
 
-    def step(self) -> List[RequestOutput]:
+    def step(self, 
+        info_dict:Optional[dict] = None,) -> List[RequestOutput]:
         """Performs one decoding iteration and returns newly generated results.
 
         This function performs one decoding iteration of the engine. It first
@@ -554,6 +556,7 @@ class LLMEngine:
             blocks_to_swap_in=scheduler_outputs.blocks_to_swap_in,
             blocks_to_swap_out=scheduler_outputs.blocks_to_swap_out,
             blocks_to_copy=scheduler_outputs.blocks_to_copy,
+            info_dict=info_dict
         )
 
         return self._process_model_outputs(output, scheduler_outputs) + ignored

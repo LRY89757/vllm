@@ -105,6 +105,7 @@ class LLM:
         sampling_params: Optional[SamplingParams] = None,
         prompt_token_ids: Optional[List[List[int]]] = None,
         use_tqdm: bool = True,
+        info_dict:Optional[dict] = None,
     ) -> List[RequestOutput]:
         """Generates the completions for the input prompts.
 
@@ -150,7 +151,7 @@ class LLM:
             else:
                 token_ids = prompt_token_ids[i]
             self._add_request(prompt, sampling_params, token_ids)
-        return self._run_engine(use_tqdm)
+        return self._run_engine(use_tqdm, info_dict=info_dict)
 
     def _add_request(
         self,
@@ -162,20 +163,33 @@ class LLM:
         self.llm_engine.add_request(request_id, prompt, sampling_params,
                                     prompt_token_ids)
 
-    def _run_engine(self, use_tqdm: bool) -> List[RequestOutput]:
+    def _run_engine(self, use_tqdm: bool, info_dict:Optional[dict],) -> List[RequestOutput]:
         # Initialize tqdm.
         if use_tqdm:
             num_requests = self.llm_engine.get_num_unfinished_requests()
             pbar = tqdm(total=num_requests, desc="Processed prompts")
         # Run the engine.
         outputs: List[RequestOutput] = []
+        cnt = 0
+        import time
+        time_perf = []
+
+        
         while self.llm_engine.has_unfinished_requests():
-            step_outputs = self.llm_engine.step()
+            beg = time.perf_counter()
+            step_outputs = self.llm_engine.step(info_dict)
+            end = time.perf_counter()
+            time_perf.append(end - beg)
+            cnt += 1
             for output in step_outputs:
                 if output.finished:
                     outputs.append(output)
                     if use_tqdm:
                         pbar.update(1)
+        print(f"cnt num: {cnt}")
+        print(time_perf)
+        print(time_perf[0], sum(time_perf[1:]))
+        print(info_dict)
         if use_tqdm:
             pbar.close()
         # Sort the outputs by request ID.

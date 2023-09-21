@@ -111,6 +111,7 @@ class Worker:
             kv_caches=[(None, None)] * num_layers,
             input_metadata=input_metadata,
             cache_events=None,
+            info_dict=None
         )
 
         # Calculate the number of blocks that can be allocated with the
@@ -260,6 +261,7 @@ class Worker:
         blocks_to_swap_in: Dict[int, int],
         blocks_to_swap_out: Dict[int, int],
         blocks_to_copy: Dict[int, List[int]],
+        info_dict:Optional[dict] = None,
     ) -> SamplerOutput:
         # Issue cache operations.
         issued_cache_op = False
@@ -296,6 +298,7 @@ class Worker:
             kv_caches=self.gpu_cache,
             input_metadata=input_metadata,
             cache_events=cache_events,
+            info_dict=info_dict,
         )
         return output
 
