@@ -146,10 +146,10 @@ if __name__ == '__main__':
     # os.environ['CURL_CA_BUNDLE'] = ''
 
     std_bsz = 8
-    std_inputlen = 8
-    # std_inputlen = 32
-    # std_output_len = 128
-    std_output_len = 256
+    # std_inputlen = 8
+    std_inputlen = 32
+    std_output_len = 128
+    # std_output_len = 256
 
     # [2, 4, 8, 16, 32, 64]
     all_x_axis = {
