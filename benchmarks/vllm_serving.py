@@ -247,7 +247,8 @@ if __name__ == "__main__":
     # all_x_axis = {"request rate":[0, 200],}
     # all_x_axis = {"request rate":[2, 3, 4],}
     # all_x_axis = {"request rate":[1.5],}
-    all_x_axis = {"request rate":[0, 1, 1.5, 2, 3, 4, 5, 10, 20, 50, 100, 200],}
+    # all_x_axis = {"request rate":[0, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 400],}
+    all_x_axis = {"request rate":[6, 7, 8, 9, 10],}
     # all_x_axis = {"request rate":[0],}
 
     throughput_dict = {
@@ -259,7 +260,7 @@ if __name__ == "__main__":
     metrics = {"request rate": request_rates}
 
     # print(batch_sizes)
-    from utils import plot_figure
+    # from utils import plot_figure
     import json
 
     for k, v in metrics.items():
@@ -286,7 +287,7 @@ if __name__ == "__main__":
             #     import ray
             #     ray.shutdown()
 
-            plot_figure(all_x_axis[k][0:idx+1], throughts, k, "throughput", "requests/s")
+            # plot_figure(all_x_axis[k][0:idx+1], throughts, k, "throughput", "requests/s")
 
             throughput_dict[k].append((request_rate, item_dict))
 
