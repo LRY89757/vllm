@@ -559,6 +559,8 @@ class LLMEngine:
             info_dict=info_dict
         )
 
+        # logger.info(f"the length of output token: {len(output[0][0].output_token)}") # it is single id, can't get the whole len of output token ids
+
         return self._process_model_outputs(output, scheduler_outputs) + ignored
 
     def _log_system_stats(
