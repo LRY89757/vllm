@@ -8,7 +8,7 @@ def profile(llm:LLM, prompts, sampling_params, info_dict:None, out_json="trace.j
                 on_trace_ready=torch.profiler.tensorboard_trace_handler(f'./log/{out_json[:-5]}') if args.tensorboard else None,
                  record_shapes=True, profile_memory=True, use_cuda=True, with_flops=True, with_stack=True) as prof:
         with record_function("generate"):
-            outputs = llm.generate(prompts, sampling_params, info_dict=info_dict)
+            outputs = llm.generate(prompt_token_ids=prompts, sampling_params=sampling_params, info_dict=info_dict)
 
     print("self_cpu_memory_usage")
     print(prof.key_averages().table(sort_by="self_cpu_memory_usage", row_limit=20))
@@ -44,6 +44,8 @@ python examples/inference_testing.py -tp 4 --profile True --tensorboard True | t
 python examples/inference_testing.py --model "meta-llama/Llama-2-7b-hf" --tokenizer 'hf-internal-testing/llama-tokenizer' | tee log.log 2>&1
 python examples/inference_testing.py --model "meta-llama/Llama-2-7b-hf" --tokenizer 'hf-internal-testing/llama-tokenizer' --profile True | tee log.log 2>&1
 
+python examples/inference_testing.py --model "meta-llama/Llama-2-7b-hf" --tokenizer 'hf-internal-testing/llama-tokenizer' --profile True --output-len 2048 --input-len 2048 --batch-size 8 | tee log.log 2>&1 
+
 python examples/inference_testing.py --model "meta-llama/Llama-2-7b-hf" -tp 4 --tokenizer 'hf-internal-testing/llama-tokenizer' | tee log.log 2>&1
 python examples/inference_testing.py --model "meta-llama/Llama-2-7b-hf" -tp 4 --tokenizer 'hf-internal-testing/llama-tokenizer' --profile True | tee log.log 2>&1
 python examples/inference_testing.py --model "meta-llama/Llama-2-7b-hf" -tp 4 --tokenizer 'hf-internal-testing/llama-tokenizer' --profile True --tensorboard True | tee log.log 2>&1
@@ -54,7 +56,7 @@ python examples/inference_testing.py --model "meta-llama/Llama-2-13b-hf" --token
 '''
 
 '''
-/mnt/data01/home/lry/envs/miniconda3/envs/vllm/lib/python3.9/site-packages/torch/autograd/profiler_util.py:867,727,708
+/mnt/data01/home/lry/envs/miniconda3/envs/vllm/lib/python3.9/site-packages/torch/autograd/profiler_util.py:864,726,708
             name = name[:80]
     src_column_width = 80
     name_column_width = 80
@@ -83,7 +85,8 @@ if __name__ == "__main__":
     #     "The capital of France is",
     #     "The future of AI is",
     # ]
-    prompts = ["0"*32]
+    # prompts = ["0"*32]
+
     # Create a sampling params object.
     sampling_params = SamplingParams(temperature=0.8, top_p=0.95, ignore_eos=True, max_tokens=args.output_len)
 
@@ -91,7 +94,8 @@ if __name__ == "__main__":
     std_inputlen = 8
     std_output_len = 32
 
-    dummy_prompt_token_ids = [[0] * 32] * 1
+    # dummy_prompt_token_ids = [[0] * 32] * 1
+    dummy_prompt_token_ids = [[0] * args.input_len] * args.batch_size
 
     # Create an LLM.
     # llm = LLM(model="facebook/opt-125m")
@@ -107,7 +111,7 @@ if __name__ == "__main__":
     # Generate texts from the prompts. The output is a list of RequestOutput objects
     # that contain the prompt, generated text, and other information.
     if args.profile:
-        outputs = profile(llm, prompts, sampling_params, info_dict=None, out_json=f"{get_model_name(args.model)}.json", args=args)
+        outputs = profile(llm, dummy_prompt_token_ids, sampling_params, info_dict=None, out_json=f"{get_model_name(args.model)}.json", args=args)
     else:
         # outputs = llm.generate(prompts, sampling_params, info_dict=info_dict)
         outputs = llm.generate(prompt_token_ids=dummy_prompt_token_ids, sampling_params=sampling_params, info_dict=info_dict)
@@ -125,4 +129,4 @@ if __name__ == "__main__":
     for output in outputs:
         prompt = output.prompt
         generated_text = output.outputs[0].text
-        print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
+        # print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
