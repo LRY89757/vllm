@@ -9,6 +9,11 @@ from vllm.outputs import RequestOutput
 from vllm.sampling_params import SamplingParams
 from vllm.utils import Counter
 
+from vllm.logger import init_logger
+logger = init_logger(__name__)
+
+_LOGGING_INTERVAL_SEC = 5
+
 
 class LLM:
     """An LLM for generating texts from given prompts and sampling parameters.
@@ -163,7 +168,7 @@ class LLM:
         self.llm_engine.add_request(request_id, prompt, sampling_params,
                                     prompt_token_ids)
 
-    def _run_engine(self, use_tqdm: bool, info_dict:Optional[dict],) -> List[RequestOutput]:
+    def _run_engine(self, use_tqdm: bool, info_dict:Optional[dict]=None,) -> List[RequestOutput]:
         # Initialize tqdm.
         if use_tqdm:
             num_requests = self.llm_engine.get_num_unfinished_requests()
@@ -176,20 +181,24 @@ class LLM:
 
         
         while self.llm_engine.has_unfinished_requests():
-            beg = time.perf_counter()
+            # beg = time.perf_counter()
             step_outputs = self.llm_engine.step(info_dict)
-            end = time.perf_counter()
-            time_perf.append(end - beg)
-            cnt += 1
+            # end = time.perf_counter()
+            # time_perf.append(end - beg)
+            # cnt += 1
             for output in step_outputs:
                 if output.finished:
                     outputs.append(output)
                     if use_tqdm:
                         pbar.update(1)
-        print(f"cnt num: {cnt}")
-        print(time_perf)
-        print(time_perf[0], sum(time_perf[1:]))
-        print(info_dict)
+        # print(f"cnt num: {cnt}")
+        # print(time_perf)
+        # print(time_perf[0], sum(time_perf[1:]))
+        # print(info_dict)
+        # logger.info(f"cnt num: {cnt}")
+        # logger.info(time_perf)
+        # logger.info(f"prefilling time: {time_perf[0]}, decoding time: {sum(time_perf[1:])}")
+
         if use_tqdm:
             pbar.close()
         # Sort the outputs by request ID.

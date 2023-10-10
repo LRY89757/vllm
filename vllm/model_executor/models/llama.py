@@ -293,20 +293,27 @@ class LlamaForCausalLM(nn.Module):
         cache_events: Optional[List[torch.cuda.Event]],
         info_dict:Optional[dict] = None,
     ) -> SamplerOutput:
-        t1 = time.perf_counter()
-        hidden_states = self.model(input_ids, positions, kv_caches,
-                                   input_metadata, cache_events)
-        t2 = time.perf_counter()
-        next_tokens = self.sampler(self.lm_head.weight, hidden_states,
-                                   input_metadata)
-        t3 = time.perf_counter()
 
         if info_dict is not None:
+            t1 = time.perf_counter()
+            hidden_states = self.model(input_ids, positions, kv_caches,
+                                       input_metadata, cache_events)
+            t2 = time.perf_counter()
+            next_tokens = self.sampler(self.lm_head.weight, hidden_states,
+                                       input_metadata)
+            t3 = time.perf_counter()
+
             info_dict["model_input_shape"].append(input_ids.shape)
             info_dict["model_output_shape"].append(hidden_states.shape)
             info_dict["sampler_output_shape"].append((len(next_tokens), len(next_tokens[0])))
             info_dict["timer_total_model"].append(t2 - t1)
             info_dict["timer_total_sampler"].append(t3 - t2)
+        else:
+            hidden_states = self.model(input_ids, positions, kv_caches,
+                                       input_metadata, cache_events)
+
+            next_tokens = self.sampler(self.lm_head.weight, hidden_states,
+                                       input_metadata)
 
         return next_tokens
 
