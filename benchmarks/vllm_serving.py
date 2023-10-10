@@ -247,8 +247,8 @@ if __name__ == "__main__":
     # all_x_axis = {"request rate":[0, 200],}
     # all_x_axis = {"request rate":[2, 3, 4],}
     # all_x_axis = {"request rate":[1.5],}
-    # all_x_axis = {"request rate":[0, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 400],}
-    all_x_axis = {"request rate":[6, 7, 8, 9, 10],}
+    all_x_axis = {"request rate":[0, 1, 1.5, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100, 200, 400],}
+    # all_x_axis = {"request rate":[6, 7, 8, 9, 10],}
     # all_x_axis = {"request rate":[0],}
 
     throughput_dict = {
