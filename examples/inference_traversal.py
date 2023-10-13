@@ -184,9 +184,12 @@ if __name__ == '__main__':
     # [2, 4, 8, 16, 32, 64]
     all_x_axis = {
                 # "batch size":[1, 2, 4, 8, 16, 32, 64, 128, 256, 384, 512, 768], 
-                "batch size":[1, 2, 4, 8], 
+                # "batch size":[1, 2, 4, 8], 
+                "batch size":[8, 32, 128, 512, 2048], 
+                # "batch size":[512, 1024], 
                 # "batch size":[128, 512, 1024, 2048], 
-                    "input lens":[8, 16], 
+                    "input lens":[16], 
+                    # "input lens":[8, 16], 
                     # "input lens":[32, 64, 128, 256, 512, 1024, 2048, 4096], 
                     # "output lens": [128, 256, 512, 1024, 2048, 4096]
                     "output lens": [32]
